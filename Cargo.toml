@@ -10,4 +10,11 @@ homepage = "https://github.com/byfnoel/caesar-cipher"
 repository = "https://github.com/byfnoel/caesar-cipher"
 keywords = ["rust", "encryption", "caesar-cipher", "cryptography", "substitution-cipher"]
 
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 1
+
 [dependencies]
+
