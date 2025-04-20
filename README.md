@@ -3,7 +3,7 @@
 A high-level implementation of the caesar cipher encryption scheme
 written in ```RUST```.
 
-# BACKGROUND
+## BACKGROUND
 
 Caesar cipher is a cryptographic encryption technique where each text
 character get replaced by a letter of fixed position down the alphabet.
@@ -23,7 +23,7 @@ As a crates.io dependency:
 subcipher = "0.1.0"
 `````
 
-## LICENSE
+### LICENSE
 
 Licensed under either of
 
