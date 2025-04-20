@@ -23,7 +23,7 @@ As a crates.io dependency:
 subcipher = "0.1.0"
 `````
 
-### LICENSE
+## LICENSE
 
 Licensed under either of
 
