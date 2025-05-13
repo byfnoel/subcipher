@@ -1,100 +1,134 @@
-use std::io::{self, stdin, stdout, Write};
+//! SubCipher - A Caesar cipher implementation in Rust
+//!
+//! This library provides functions for encrypting and decrypting text
+//! using the Caesar cipher algorithm.
 
-fn main(){
-    let mut user_input = String::new();
-    let mut key: i64 = 5;
-    let mut encrypt_or_decrypt: i64 = 0;
-    let mut choice = 'E';
-    let mut num = 0;
+use std::fmt;
 
-    loop {
-        println!("Let me help you ENCRYPT or DECRYPT your messages");
-        println!("Press 1 to ENCRYPT\tand 2 to DECRYPT\n");
-        print!("Enter your SELECTION: ");
-        stdout().flush().unwrap();
-        match io::stdin().read_line(&mut user_input) {
-            Ok(_) => {
-                encrypt_or_decrypt = user_input.trim().parse().unwrap_or(0);
-                if encrypt_or_decrypt == 1 || encrypt_or_decrypt == 2 {
-                   break;
-                }
-            }
-            Err(_) => {
-                println!("INVALID INPUT");
-                continue;
+/// Errors that can occur during encryption or decryption
+#[derive(Debug)]
+pub enum SubCipherError {
+    InvalidKey,
+    InvalidCharacter,
+}
+
+impl fmt::Display for SubCipherError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SubCipherError::InvalidKey => write!(f, "Invalid key: must be between 0 and 25"),
+            SubCipherError::InvalidCharacter => {
+                write!(f, "Invalid text: all characters must be between A-Z")
             }
         }
-        user_input.clear();
-    }
-
-    match encrypt_or_decrypt{
-        1 => {
-            println!("Enter your message for ENCRYPTION: ");
-            getline(&mut user_input);
-            for c in user_input.chars() {
-                if c < 'A' || c > 'Z' {
-                    continue;
-                }
-                if c == 'Z' {
-                    user_input.replace_range(
-                        user_input.find(c).unwrap()..user_input.find(c).unwrap() + 1, "A");
-                } else {
-                    user_input.replace_range(
-                        user_input.find(c).unwrap()..user_input.find(c).unwrap() + 1, 
-                        &((((c as u8 - 65) + key as u8) % 26) + 65) as char);
-                }
-            }
-            println!("ENCRYPTED Message: {}", user_input);
-        }
-
-        2 => {
-            println!("Enter your message for DECRYPTION: ");
-            getline(&mut user_input);
-            for c in user_input.chars() {
-                if c < 'A' || c > 'Z' {
-                    continue;
-                }
-                if c - key as char < 'A' {
-                    num = (c as u8 - 65 - key as u8).abs() as i32;
-                    user_input.replace_range(
-                        user_input.find(c).unwrap()..user_input.find(c).unwrap() + 1,
-                        &(90 - num + 1) as char);
-                } else {
-                    user_input.replace_range(
-                        user_input.find(c).unwrap()..user_input.find(c).unwrap() + 1, 
-                        &((((c as u8 - 65) - key as u8) % 26) + 65) as char);
-                }
-            }
-            println!("DECRYPTED Message: {}", user_input);
-        }
-        _ => {
-            println!("INVALID INPUT");
-        }
-    }
-
-    loop {
-        print!("Still want to continue [C for CONTINUE and E to END the program]: ");
-        io::stdout().flush().unwrap();
-        match io::stdin().read_line(&mut user_input) {
-            Ok(_) => {
-                choice = user_input.trim().chars().next().unwrap_or('E');
-                if choice == 'E' {
-                    break;
-                }
-            }
-            Err(_) => {
-                println!("INVALID INPUT");
-                continue;
-            }
-
-        user_input.clear();
-        }
-        println!("Thank You for playing along");
     }
 }
 
-fn getline(s: &mut String) {
-    s.clear();
-    stdin().read_line(s).expect("Failed to read line");
-    s.pop();
+impl std::error::Error for SubCipherError {}
+
+/// Encrypts a string using the Caesar cipher.  
+///
+/// # Arguments
+///
+/// * `input` - The string to encrypt
+/// * `key` - The number of positions to shift each letter (0-25)
+///
+/// # Returns
+///
+/// The encrypted string, or an error if the key is invalid.
+///
+/// # Examples
+///
+/// ```
+/// use subcipher::encrypt;
+///   
+/// let encrypted = encrypt("HELLO", 5).unwrap();
+/// assert_eq!(encrypted, "MJQQT");
+/// ```
+pub fn encrypt(input: &str, key: u8) -> Result<String, SubCipherError> {
+    if key > 25 {
+        return Err(SubCipherError::InvalidKey);
+    }
+
+    Ok(input
+        .chars()
+        .map(|c| {
+            if c >= 'A' && c <= 'Z' {
+                let shifted = (((c as u8 - b'A') + key) % 26) + b'A';
+                shifted as char
+            } else {
+                c
+            }
+        })
+        .collect())
+}
+
+/// Decrypts a string that was encrypted using the Caesar cipher.
+///
+/// # Arguments
+///  
+/// * `input` - The string to decrypt
+/// * `key` - The number of positions that were used to shift each letter (0-25)
+///
+/// # Returns
+///
+/// The decrypted string, or an error if the key is invalid.
+///
+/// # Examples
+///
+/// ```
+/// use subcipher::decrypt;
+///
+/// let decrypted = decrypt("MJQQT", 5).unwrap();
+/// assert_eq!(decrypted, "HELLO");  
+/// ```
+pub fn decrypt(input: &str, key: u8) -> Result<String, SubCipherError> {
+    if key > 25 {
+        return Err(SubCipherError::InvalidKey);
+    }
+
+    Ok(input
+        .chars()
+        .map(|c| {
+            if c >= 'A' && c <= 'Z' {
+                let shifted = (((c as u8 - b'A') + 26 - (key % 26)) % 26) + b'A';
+                shifted as char
+            } else {
+                c
+            }
+        })
+        .collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_encrypt() {
+        assert_eq!(encrypt("HELLO", 5).unwrap(), "MJQQT");
+        assert_eq!(encrypt("ZEBRA", 5).unwrap(), "EJGWF");
+        assert_eq!(encrypt("Hello World!", 5).unwrap(), "Hello World!");
+    }
+
+    #[test]
+    fn test_decrypt() {
+        assert_eq!(decrypt("MJQQT", 5).unwrap(), "HELLO");
+        assert_eq!(decrypt("EJGWF", 5).unwrap(), "ZEBRA");
+        assert_eq!(decrypt("Hello World!", 5).unwrap(), "Hello World!");
+    }
+
+    #[test]
+    fn test_invalid_key() {
+        assert!(encrypt("HELLO", 26).is_err());
+        assert!(decrypt("HELLO", 26).is_err());
+    }
+
+    #[test]
+    fn test_roundtrip() {
+        let original = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG";
+        let key = 13;
+        let encrypted = encrypt(original, key).unwrap();
+        let decrypted = decrypt(&encrypted, key).unwrap();
+        assert_eq!(decrypted, original);
+    }
 }
