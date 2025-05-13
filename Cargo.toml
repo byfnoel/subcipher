@@ -8,6 +8,7 @@ description = "A high-level implementation of the caesar cipher encryption schem
 readme = "README.md"
 homepage = "https://github.com/byfnoel/caesar-cipher"
 repository = "https://github.com/byfnoel/caesar-cipher"
+categories = ["cryptography"]
 keywords = [
 	"rust",
 	"encryption",
@@ -16,6 +17,14 @@ keywords = [
 	"substitution-cipher",
 ]
 
+[lib]
+name = "subcipher"
+path = "src/lib.rs"
+
+[[bin]]
+name = "subcipher-cli"
+path = "src/main.rs"
+
 [profile.dev]
 opt-level = 1
 
@@ -23,3 +32,5 @@ opt-level = 1
 opt-level = 1
 
 [dependencies]
+tracing = "0.1"
+tracing-subscriber = "0.3.0"
