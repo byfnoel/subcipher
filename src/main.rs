@@ -1,12 +1,35 @@
+use colored::Colorize;
 use std::io::{Write, stdin, stdout};
 use subcipher::{decrypt, encrypt};
 
 fn main() {
-    println!("Welcome to subcipher, the caesar cipher encryption tool");
-    println!("-------------------------------------------------------");
+    let entry_message = "Welcome to subcipher, the caesar cipher encryption tool";
+    let width = entry_message.chars().count();
+    let horizontal = "─".repeat(width + 2);
+    println!(
+        "{}{}{}",
+        "┌".cyan().bold(),
+        horizontal.cyan(),
+        "┐".cyan().bold()
+    );
+    println!(
+        "{} {} {}",
+        "│".cyan(),
+        entry_message.yellow().bold(),
+        "│".cyan()
+    );
+    println!(
+        "{}{}{}",
+        "└".cyan().bold(),
+        horizontal.cyan(),
+        "┘".cyan().bold()
+    );
 
     loop {
-        println!("\nLet me help you ENCRYPT or DECRYPT your messages");
+        println!(
+            "{}",
+            " Let me help you ENCRYPT or DECRYPT your messages".green()
+        );
         println!("Press 1 to ENCRYPT\tand 2 to DECRYPT\n");
 
         let choice = get_user_choice();
