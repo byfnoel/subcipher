@@ -28,9 +28,9 @@ fn main() {
     loop {
         println!(
             "{}",
-            " Let me help you ENCRYPT or DECRYPT your messages".green()
+            " Let me help you ENCRYPT or DECRYPT your message".green()
         );
-        println!("Press 1 to ENCRYPT\tand 2 to DECRYPT\n");
+        println!("Press 1 to ENCRYPT\tor Press 2 to DECRYPT\n");
 
         let choice = get_user_choice();
 
@@ -68,7 +68,7 @@ fn handle_encryption() {
     println!("Enter your message for ENCRYPTION: ");
     let input = get_user_input();
 
-    println!("Enter the encryption key (0-25): ");
+    println!("Enter your encryption key (0-25): ");
     let key = get_key();
 
     match encrypt(&input, key) {
@@ -81,7 +81,7 @@ fn handle_decryption() {
     println!("Enter your message for DECRYPTION: ");
     let input = get_user_input();
 
-    println!("Enter the decryption key (0-25): ");
+    println!("Enter your decryption key (0-25): ");
     let key = get_key();
 
     match decrypt(&input, key) {
@@ -130,7 +130,7 @@ fn continue_prompt() -> bool {
             choice == 'C' || choice == 'c'
         }
         Err(_) => {
-            println!("Error reading input. Exiting program.");
+            println!("Error reading input. EXITING THE PROGRAM NOW!");
             false
         }
     }

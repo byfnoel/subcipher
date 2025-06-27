@@ -1,8 +1,3 @@
-//! SubCipher - A Caesar cipher implementation in Rust
-//!
-//! This library provides functions for encrypting and decrypting text
-//! using the Caesar cipher algorithm.
-
 use std::fmt;
 
 /// Errors that can occur during encryption or decryption
@@ -17,7 +12,10 @@ impl fmt::Display for SubCipherError {
         match self {
             SubCipherError::InvalidKey => write!(f, "Invalid key: must be between 0 and 25"),
             SubCipherError::InvalidCharacter => {
-                write!(f, "Invalid text: all characters must be between A-Z")
+                write!(
+                    f,
+                    "Invalid text: only alphabetic characters (A-Z, a-z) are allowed"
+                )
             }
         }
     }
@@ -25,16 +23,11 @@ impl fmt::Display for SubCipherError {
 
 impl std::error::Error for SubCipherError {}
 
-/// Encrypts a string using the Caesar cipher.  
+/// Encrypts a string using  Caesar cipher encryption algorithm scheme.  
 ///
-/// # Arguments
+/// # Arguments and Returns
 ///
-/// * `input` - The string to encrypt
-/// * `key` - The number of positions to shift each letter (0-25)
-///
-/// # Returns
-///
-/// The encrypted string, or an error if the key is invalid.
+/// encrypt(input: string to encrypt, key: # of positions to shift each letter) -> encrypted string or error
 ///
 /// # Examples
 ///
@@ -49,29 +42,31 @@ pub fn encrypt(input: &str, key: u8) -> Result<String, SubCipherError> {
         return Err(SubCipherError::InvalidKey);
     }
 
-    Ok(input
-        .chars()
-        .map(|c| {
-            if c >= 'A' && c <= 'Z' {
-                let shifted = (((c as u8 - b'A') + key) % 26) + b'A';
-                shifted as char
-            } else {
-                c
-            }
-        })
-        .collect())
+    let mut result = String::new();
+
+    for c in input.chars() {
+        if c >= 'A' && c <= 'Z' {
+            // Handle uppercase letters
+            let shifted = (((c as u8 - b'A') + key) % 26) + b'A';
+            result.push(shifted as char);
+        } else if c >= 'a' && c <= 'z' {
+            // Handle lowercase letters
+            let shifted = (((c as u8 - b'a') + key) % 26) + b'a';
+            result.push(shifted as char);
+        } else {
+            // Return error for invalid characters
+            return Err(SubCipherError::InvalidCharacter);
+        }
+    }
+
+    Ok(result)
 }
 
 /// Decrypts a string that was encrypted using the Caesar cipher.
 ///
-/// # Arguments
-///  
-/// * `input` - The string to decrypt
-/// * `key` - The number of positions that were used to shift each letter (0-25)
+/// # Arguments and Returns
 ///
-/// # Returns
-///
-/// The decrypted string, or an error if the key is invalid.
+/// decrypt(input: string to decrypt, key: # of positions previously used as shift) -> decrypted string or error  
 ///
 /// # Examples
 ///
@@ -86,17 +81,24 @@ pub fn decrypt(input: &str, key: u8) -> Result<String, SubCipherError> {
         return Err(SubCipherError::InvalidKey);
     }
 
-    Ok(input
-        .chars()
-        .map(|c| {
-            if c >= 'A' && c <= 'Z' {
-                let shifted = (((c as u8 - b'A') + 26 - (key % 26)) % 26) + b'A';
-                shifted as char
-            } else {
-                c
-            }
-        })
-        .collect())
+    let mut result = String::new();
+
+    for c in input.chars() {
+        if c >= 'A' && c <= 'Z' {
+            // Handle uppercase letters
+            let shifted = (((c as u8 - b'A') + 26 - (key % 26)) % 26) + b'A';
+            result.push(shifted as char);
+        } else if c >= 'a' && c <= 'z' {
+            // Handle lowercase letters
+            let shifted = (((c as u8 - b'a') + 26 - (key % 26)) % 26) + b'a';
+            result.push(shifted as char);
+        } else {
+            // Return error for invalid characters
+            return Err(SubCipherError::InvalidCharacter);
+        }
+    }
+
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -107,14 +109,14 @@ mod tests {
     fn test_encrypt() {
         assert_eq!(encrypt("HELLO", 5).unwrap(), "MJQQT");
         assert_eq!(encrypt("ZEBRA", 5).unwrap(), "EJGWF");
-        assert_eq!(encrypt("Hello World!", 5).unwrap(), "Hello World!");
+        assert_eq!(encrypt("Hello", 5).unwrap(), "Mjqqt");
     }
 
     #[test]
     fn test_decrypt() {
         assert_eq!(decrypt("MJQQT", 5).unwrap(), "HELLO");
         assert_eq!(decrypt("EJGWF", 5).unwrap(), "ZEBRA");
-        assert_eq!(decrypt("Hello World!", 5).unwrap(), "Hello World!");
+        assert_eq!(decrypt("Mjqqt", 5).unwrap(), "Hello");
     }
 
     #[test]
@@ -124,11 +126,31 @@ mod tests {
     }
 
     #[test]
+    fn test_invalid_character() {
+        assert!(encrypt("Hello World!", 5).is_err());
+        assert!(decrypt("Hello World!", 5).is_err());
+        assert!(encrypt("HELLO123", 5).is_err());
+        assert!(decrypt("HELLO123", 5).is_err());
+        assert!(encrypt("HELLO@#$", 5).is_err());
+        assert!(decrypt("HELLO@#$", 5).is_err());
+    }
+
+    #[test]
     fn test_roundtrip() {
-        let original = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG";
+        let original = "THEQUICKBROWNFOXJUMPSOVERTHELAZYDOG";
         let key = 13;
         let encrypted = encrypt(original, key).unwrap();
         let decrypted = decrypt(&encrypted, key).unwrap();
         assert_eq!(decrypted, original);
+    }
+
+    #[test]
+    fn test_mixed_case() {
+        let original = "HelloWorld";
+        let key = 3;
+        let encrypted = encrypt(original, key).unwrap();
+        let decrypted = decrypt(&encrypted, key).unwrap();
+        assert_eq!(decrypted, original);
+        assert_eq!(encrypted, "KhoorZruog");
     }
 }
